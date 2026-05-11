@@ -1,0 +1,30 @@
+trigger:
+  branches:
+    include:
+      - main
+
+pool:
+  name: 'Default'
+
+steps:
+- task: NodeTool@0
+  inputs:
+    versionSpec: '20.x'
+  displayName: 'Install Node.js'
+
+# Step 1: Install and build React app
+- script: |
+    echo "Building React app..."
+    npm install
+    npm run build
+  displayName: 'npm install and build'
+
+# Step 2: Move build to deployment folder
+- script: |
+    echo "Deploying build to /var/www/medcapsky"
+    sudo rm -rf /var/www/medcapsky/*
+    sudo cp -r build/* /var/www/medcapsky/
+    sudo chown -R www-data:www-data /var/www/medcapsky
+    sudo chmod -R 755 /var/www/medcapsky
+    sudo systemctl restart nginx
+  displayName: 'Deploy React build to web folder'
